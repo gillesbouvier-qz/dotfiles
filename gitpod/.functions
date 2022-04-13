@@ -45,6 +45,28 @@ function exec-host() {
     kubectl exec -it "$daemon" -c ws-daemon -- sh -c "nsenter -t 1 -p -u -m -n bash"
 }
 
+function log-component() {
+  local component=$1
+
+  local result=$(kubectl get pods -l component="${component}" --sort-by=.metadata.creationTimestamp --no-headers=true -o custom-columns=Name:.metadata.name | grep "$component")
+  if [ -z "$result" ]; then
+    echo "$component not found"
+    return
+  fi
+
+  if (( $(grep -c . <<< "$result") > 1 )); then
+    readarray -t instances <<< "$result"
+    select i in "${instances[@]}"
+    do
+      kubectl logs "$i" -c "$component"
+      return
+    done
+    return
+  fi
+
+  kubectl logs "$result" -c "$component"
+}
+
 # Get daemon logs
 function log-daemon() {
     if [ ! -z "$1" ]; then
@@ -52,25 +74,74 @@ function log-daemon() {
       return
     fi
 
-    local daemon=$(kubectl get pods -o custom-columns=Name:.metadata.name | grep ws-daemon)
-    if [ -z "$daemon" ]; then
-      echo "ws-daemon not found"
-      return
-    fi
+    log-component "ws-daemon"
+}
 
-    if (( $(grep -c . <<< "$daemon") > 1 )); then
-      readarray -t instances <<< "$daemon"
-      select i in "${instances[@]}"
-      do
-        kubectl logs "$i" -c ws-daemon
-        return
-      done
-      return
-    fi
+# Get agent smith logs
+function log-smith() {
+  if [ ! -z "$1" ]; then
+     kubectl logs "$1" -c agent-smith
+     return
+  fi
 
-    kubectl logs "$daemon" -c ws-daemon
+  log-component "agent-smith"
+}
+
+# Get ws-manager logs
+function log-manager() {
+  if [ ! -z "$1" ]; then
+     kubectl logs "$1" -c ws-manager
+     return
+  fi
+
+  log-component "ws-manager"
+}
+
+# Get registry facade logs
+function log-reg() {
+  if [ ! -z "$1" ]; then
+     kubectl logs "$1" -c registry-facade
+     return
+  fi
+
+  log-component "registry-facade"
 }
 
 function tail-prebuild() {
   kubectl exec -it "$1" -- tail -f /workspace/.gitpod/prebuild-log-0
 }
+
+function minio-login() {
+  local username=$(kubectl get secrets minio -o jsonpath="{.data.root-user}" | base64 -d)
+  local password=$(kubectl get secrets minio -o jsonpath="{.data.root-password}" | base64 -d)
+
+  echo "username: ${username}"
+  echo "password: ${password}"
+}
+
+function db-login() {
+  local username=$(kubectl get secrets mysql -o jsonpath="{.data.username}" | base64 -d)
+  local password=$(kubectl get secrets mysql -o jsonpath="{.data.password}" | base64 -d)
+
+  echo "username: ${username}"
+  echo "password: ${password}"
+}
+
+function forward-minio() {
+  local local_port=9001
+  if [ -n "$1" ]; then
+    local_port="$1"
+  fi
+
+  kubectl port-forward deploy/minio "$local_port":9001
+}
+
+function forward-db() {
+  local local_port=3306
+  if [ -n "$1" ]; then
+    local_port="$1"
+  fi
+
+  kubectl port-forward statefulset/mysql "$local_port":3306
+}
+
