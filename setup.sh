@@ -7,3 +7,6 @@ curl -s https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
  | wget -O /tmp/lazygit.tar.gz -qi -
 tar xvf /tmp/lazygit.tar.gz lazygit
 sudo mv lazygit /usr/local/bin/
+# hide lazygit welcome msg
+mkdir -p ~/.config/lazygit
+echo "startuppopupversion: 5" > ~/.config/lazygit/state.yml
