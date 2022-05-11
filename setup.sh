@@ -10,3 +10,6 @@ sudo mv lazygit /usr/local/bin/
 # hide lazygit welcome msg
 mkdir -p ~/.config/lazygit
 echo "startuppopupversion: 5" > ~/.config/lazygit/state.yml
+
+# symlink manually since gitpod skips this if you have setup.sh present
+ln -s ~/.dotfiles/.bash_aliases ~/.bash_aliases

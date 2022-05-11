@@ -1,12 +1,12 @@
-source ~/gcloud/.alias
-source ~/git/.alias
-source ~/gitpod/.alias
-source ~/kubernetes/.alias
-source ~/system/.alias 
+source ~/.dotfiles/gcloud/.alias
+source ~/.dotfiles/git/.alias
+source ~/.dotfiles/gitpod/.alias
+source ~/.dotfiles/kubernetes/.alias
+source ~/.dotfiles/system/.alias 
 
-source ~/gitpod/.functions
-source ~/kubernetes/.functions
-source ~/dev/.functions
-source ~/system/.functions
+source ~/.dotfiles/gitpod/.functions
+source ~/.dotfiles/kubernetes/.functions
+source ~/.dotfiles/dev/.functions
+source ~/.dotfiles/system/.functions
 
-source ~/kubernetes/.env
+source ~/.dotfiles/kubernetes/.env
