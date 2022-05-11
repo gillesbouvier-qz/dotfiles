@@ -152,3 +152,31 @@ function ssh-ws-node() {
   gcloud compute ssh "$1" --ssh-flag="-p 2222"
 }
 
+function preview-ctx() {
+  /workspace/gitpod/dev/preview/install-k3s-kubeconfig.sh
+  kubectx k3s-preview-environment
+}
+
+
+function _pending-ws-impl() {
+  workspace_pods=$(kubectl get pods -l workspaceType=regular -o wide)
+  gpctl workspaces list | grep PENDING | while read workspace 
+  do 
+    workspace_id=$(echo "$workspace" | awk '{print  $3}')
+    owner=$(echo "$workspace" | awk '{print  $1}')
+    pod=$(echo "$workspace_pods" | grep "$workspace_id")
+    if [[ -n $pod ]];then
+      echo "$pod $owner"
+    fi
+  done
+}
+
+function pending-ws() {  
+  _pending-ws-impl | sort -k6 -h | column -t
+}
+
+function delete-ws() {
+  workspace_id=$1
+  kubectl patch pod $workspace_id --patch '{"metadata": { "finalizers": null }}' --type merge
+  kubectl delete pod $workspace_id
+}
