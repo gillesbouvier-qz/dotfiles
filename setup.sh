@@ -20,5 +20,11 @@
 #tar xvf /tmp/k9s.tar.gz k9s
 #sudo mv k9s /usr/local/bin/
 
+# update packages
+sudo apt update
+
+# install less utility
+sudo apt install less
+
 # symlink manually since gitpod skips this if you have setup.sh present
 ln -s ~/.dotfiles/.bash_aliases ~/.bash_aliases
